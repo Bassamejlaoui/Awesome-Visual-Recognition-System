@@ -56,3 +56,12 @@ Docker is a container platform that simplifies deployment. It solves the problem
 After installing docker, you’ll create two files. A ```requirements.txt``` for the python dependencies and a ```Dockerfile``` to create your docker environment.
 
 
+To build this image, run: ```$ docker build -t colemurray/medium-facenet-tutorial -f Dockerfile```
+
+This can take several minutes depending on your hardware# On MBP, ~ 25mins# Image can be pulled from dockerhub below
+If you would like to avoid building from source, the image can be pulled from dockerhub using:
+***docker pull colemurray/medium-facenet-tutorial***
+
+A GPU supported environment can be found here# nvidia-docker pull colemurray/medium-facenet-tutorial:latest-gpu
+
+## Detect, Crop & Align with Dlib
