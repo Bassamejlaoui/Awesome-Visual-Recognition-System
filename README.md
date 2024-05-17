@@ -101,3 +101,46 @@ You’ll use the Inception Resnet V1 as your convolutional neural network. First
 
 By using pre-trained weights, you are able to apply [transfer learning](https://cs231n.github.io/transfer-learning) to a new dataset, in this tutorial the LFW dataset:
 
+
+```$ docker run -v $PWD:/medium-facenet-tutorial \-e PYTHONPATH=$PYTHONPATH:/medium-facenet-tutorial \-it colemurray/medium-facenet-tutorial python3 /medium-facenet-tutorial/medium_facenet_tutorial/download_and_extract_model.py \--model-dir /medium-facenet-tutorial/etc```
+
+## Load Embeddings
+
+Below, you’ll utilize Tensorflow’s queue api to load the preprocessed images in parallel. By using queues, images can be loaded in parallel using multi-threading. When using a GPU, this allows image preprocessing to be performed on CPU, while matrix multiplication is performed on GPU.
+
+## Train a Classifier
+
+With the input queue squared away, you’ll move on to creating the embeddings.
+First, you’ll load the images from the queue you created. While training, you’ll apply preprocessing to the image. This preprocessing will add random transformations to the image, creating more images to train on.
+These images will be fed in a batch size of 128 into the model. This model will return a 128 dimensional embedding for each image, returning a 128 x 128 matrix for each batch.
+After these embeddings are created, you’ll use them as feature inputs into a scikit-learn’s SVM classifier to train on each identity. Identities with less than 10 images will be dropped. This parameter is tunable from command-line.
+```$ docker run -v $PWD:/medium-facenet-tutorial \-e PYTHONPATH=$PYTHONPATH:/medium-facenet-tutorial \-it colemurray/medium-facenet-tutorial \python3 /medium-facenet-tutorial/medium_facenet_tutorial/train_classifier.py \--input-dir /medium-facenet-tutorial/output/intermediate \--model-path /medium-facenet-tutorial/etc/20170511-185253/20170511-185253.pb \--classifier-path /medium-facenet-tutorial/output/classifier.pkl \--num-threads 16 \--num-epochs 25 \--min-num-images-per-class 10 \--is-train```
+'''# ~16 mins to complete on MBP```
+
+
+### valuating the Results
+
+Now that you’ve trained the classifier, you’ll feed it new images it has not trained on. You’ll remove the is_train flag from the previous command to evaluate your results.
+
+```docker run -v $PWD:/$(basename $PWD) \-e PYTHONPATH=$PYTHONPATH:/medium-facenet-tutorial \-it colemurray/medium-facenet-tutorial \python3 /medium-facenet-tutorial/medium_facenet_tutorial/train_classifier.py \--input-dir /medium-facenet-tutorial/output/intermediate \--model-path /medium-facenet-tutorial/etc/20170511-185253/20170511-185253.pb \--classifier-path /medium-facenet-tutorial/output/classifier.pkl \--num-threads 16 \--num-epochs 5 \--min-num-images-per-class 10```
+
+After inference is on each image is complete, you’ll see results printed to console. At 5 epochs, you’ll see ~85.0% accuracy. Training @ 25 epochs gave results:
+
+![image](https://github.com/mejbass/Awesome-Visual-Recognition-System/assets/130122304/f4b5f916-7e99-4c19-b111-3c9a7a092237)
+
+90.8% @ 25 epochs
+
+# Conclusion
+In this tutorial, you learned about the history of machine [learning](https://hackernoon.com/tagged/learning) and how to implement a state of the art pipeline. You utilized docker to manage your library dependencies, offering a consistent environment that is platform agnostic. You used Dlib for preprocessing and Tensorflow + Scikit-learn for training a classifier capable of predicting an identity based on an image.
+
+
+## Complete Code Here:
+
+[ColeMurray/medium-facenet-tutorial_medium-facenet-tutorial - Facial Recognition Pipeline using Dlib and Tensorflow_github.com](https://github.com/ColeMurray/medium-facenet-tutorial)
+
+**Next Steps:**
+
+- Test on your own dataset!
+- Experiment with different hyper parameters
+- Train on other labels such as gender or age
+- Implement a clustering algorithm to group similar faces
