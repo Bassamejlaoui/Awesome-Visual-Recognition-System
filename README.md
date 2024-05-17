@@ -65,3 +65,39 @@ If you would like to avoid building from source, the image can be pulled from do
 A GPU supported environment can be found here# nvidia-docker pull colemurray/medium-facenet-tutorial:latest-gpu
 
 ## Detect, Crop & Align with Dlib
+
+After creating your environment, you can begin preprocessing.
+
+```$ curl -O http://dlib.net/files/shape_predictor_68_face_landmarks.dat.bz2$ bzip2 -d shape_predictor_68_face_landmarks.dat.bz2```
+
+You’ll use this face landmark predictor to find the location of the inner eyes and bottom lips of a face in an image. These coordinates will be used to center align the image.
+
+This file, sourced from CMU, provides methods for detecting a face in an image, finding facial landmarks, and alignment given these landmarks.
+
+Next, you’ll create a preprocessor for your dataset. This file will read each image into memory, attempt to find the largest face, center align, and write the file to output. If a face cannot be found in the image, logging will be displayed to console with the filename.
+
+As each image can be processed independently, python’s multiprocessing is used to process an image on each available cpu core.
+
+### Getting Results
+
+Now that you’ve created a pipeline, time to get results. As the script supports parallelism, you will see increased performance by running with multiple cores. You’ll need to run the preprocessor in the docker environment to have access to the installed libraries.
+
+Below, you’ll mount your project directory as a volume inside the docker container and run the preprocessing script on your input data. The results will be written to a directory specified with command line arguments.
+
+'''$ docker run -v $PWD:/medium-facenet-tutorial \-e PYTHONPATH=$PYTHONPATH:/medium-facenet-tutorial \-it colemurray/medium-facenet-tutorial python3 /medium-facenet-tutorial/medium_facenet_tutorial/preprocess.py \--input-dir /medium-facenet-tutorial/data \--output-dir /medium-facenet-tutorial/output/intermediate \--crop-dim 180'''
+
+***Code up to this point can be found [Here](https://github.com/ColeMurray/medium-facenet-tutorial/tree/add_alignment)*** 
+
+### Review
+
+Using Dlib, you detected the largest face in an image and aligned the center of the face by the inner eyes and bottom lip. This alignment is a method for standardizing each image for use as feature input.
+
+## Creating Embeddings in Tensorflow
+
+Now that you’ve preprocessed the data, you’ll generate vector embeddings of each identity. These embeddings can then be used as input to a classification, regression or clustering task.
+
+### Download Weights
+You’ll use the Inception Resnet V1 as your convolutional neural network. First, create a file to download the weights to the model.
+
+By using pre-trained weights, you are able to apply [transfer learning](https://cs231n.github.io/transfer-learning) to a new dataset, in this tutorial the LFW dataset:
+
